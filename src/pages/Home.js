@@ -7,7 +7,7 @@ const Home = () => {
   const [songs, setSongs] = useState([]);
   // Fetch songs from backend
   useEffect(() => {
-    fetch("https://music-player-backend-m8l8.onrender.com/")
+    fetch("https://music-player-backend-m8l8.onrender.com/songs")
       .then((res) => res.json())
       .then((data) => setSongs(data));
   }, []);

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Player from "../components/Player";
-import SongList from "../components/SongList";
+// import SongList from "../components/SongList";
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [songs, setSongs] = useState([]);
   // Fetch songs from backend
   useEffect(() => {
-    fetch("http://localhost:5000/songs")
+    fetch("https://music-player-backend-m8l8.onrender.com/")
       .then((res) => res.json())
       .then((data) => setSongs(data));
   }, []);

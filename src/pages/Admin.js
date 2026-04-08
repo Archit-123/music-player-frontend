@@ -30,12 +30,16 @@ const Admin = () => {
       setLoading(true);
       setMessage("Uploading...");
 
-      const res = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "https://music-player-backend-m8l8.onrender.com/upload",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await res.json();
+      console.log(data);
 
       setMessage("Upload successful 🎉");
       setTitle("");
@@ -51,7 +55,7 @@ const Admin = () => {
 
   // Fetch Songs
   useEffect(() => {
-    fetch("http://localhost:5000/songs")
+    fetch("https://music-player-backend-m8l8.onrender.com/songs")
       .then((res) => res.json())
       .then((data) => setSongs(data));
   }, []);
@@ -63,7 +67,7 @@ const Admin = () => {
   };
 
   const handleDelete = async (id) => {
-    await fetch(`http://localhost:5000/songs/${id}`, {
+    await fetch(`https://music-player-backend-m8l8.onrender.com/${id}`, {
       method: "DELETE",
     });
 
@@ -74,28 +78,34 @@ const Admin = () => {
   const importFromYoutube = async () => {
     alert("Import started...");
 
-    await fetch("http://localhost:5000/youtube-import", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    await fetch(
+      "https://music-player-backend-m8l8.onrender.com/youtube-import",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: youtubeLink }),
       },
-      body: JSON.stringify({ url: youtubeLink }),
-    });
+    );
 
     alert("Done! Refresh songs 🎵");
   };
 
   const saveEdit = async (id) => {
-    const res = await fetch(`http://localhost:5000/songs/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `https://music-player-backend-m8l8.onrender.com/songs/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: editTitle,
+          artist: editArtist,
+        }),
       },
-      body: JSON.stringify({
-        title: editTitle,
-        artist: editArtist,
-      }),
-    });
+    );
 
     const updated = await res.json();
 

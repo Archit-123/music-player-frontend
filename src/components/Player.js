@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 
 const Player = ({ songs, currentIndex, setCurrentIndex }) => {
   const audioRef = useRef();
@@ -63,7 +63,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
       setIsPlaying(true);
       setCurrentTime(0);
     }
-  }, [currentIndex]);
+  }, [currentIndex, hasInteracted]);
 
   // Volume
 

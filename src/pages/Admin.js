@@ -30,13 +30,10 @@ const Admin = () => {
       setLoading(true);
       setMessage("Uploading...");
 
-      const res = await fetch(
-        "https://music-player-backend-m8l8.onrender.com/upload",
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await res.json();
       console.log(data);
@@ -55,7 +52,7 @@ const Admin = () => {
 
   // Fetch Songs
   useEffect(() => {
-    fetch("https://music-player-backend-m8l8.onrender.com/songs")
+    fetch(`${process.env.REACT_APP_API_URL}/songs`)
       .then((res) => res.json())
       .then((data) => setSongs(data));
   }, []);
@@ -67,45 +64,50 @@ const Admin = () => {
   };
 
   const handleDelete = async (id) => {
-    await fetch(`https://music-player-backend-m8l8.onrender.com/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/songs/${id}`, {
+        method: "DELETE",
+      });
 
-    setSongs(songs.filter((song) => song._id !== id));
+      const data = await res.json();
+      console.log("DELETE RESPONSE:", data);
+
+      // Only update UI AFTER backend success
+      setSongs(songs.filter((song) => song._id !== id));
+    } catch (err) {
+      console.error("DELETE ERROR:", err);
+    }
   };
 
   const [youtubeLink, setYoutubeLink] = useState("");
   const importFromYoutube = async () => {
     alert("Import started...");
 
-    await fetch(
-      "https://music-player-backend-m8l8.onrender.com/youtube-import",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: youtubeLink }),
+    await fetch(`${process.env.REACT_APP_API_URL}/youtube-import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ url: youtubeLink }),
+    });
 
     alert("Done! Refresh songs 🎵");
   };
 
+  // song count
+  console.log("Song count:", songs.length);
+
   const saveEdit = async (id) => {
-    const res = await fetch(
-      `https://music-player-backend-m8l8.onrender.com/songs/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: editTitle,
-          artist: editArtist,
-        }),
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/songs/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        title: editTitle,
+        artist: editArtist,
+      }),
+    });
 
     const updated = await res.json();
 
@@ -113,136 +115,117 @@ const Admin = () => {
     setEditingId(null);
   };
   return (
-    <div
-      style={{
-        height: "100vh",
-        background: "#121212",
-        color: "#fff",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <form
-        onSubmit={handleUpload}
+    <div style={{ display: "flex", height: "100vh", background: "#121212" }}>
+      {/* Sidebar */}
+      <div
         style={{
-          background: "#181818",
-          padding: "30px",
-          borderRadius: "10px",
-          width: "400px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
+          width: "220px",
+          background: "#000",
+          color: "#fff",
+          padding: "20px",
         }}
       >
-        <h2>Admin Upload 🎧</h2>
+        <h2>Admin 🎧</h2>
+        <p>Total Songs: {songs.length}</p>
 
-        <input
-          type="text"
-          placeholder="Song Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="text"
-          placeholder="Artist Name"
-          value={artist}
-          onChange={(e) => setArtist(e.target.value)}
-          style={inputStyle}
-        />
-
-        <div>
-          <label>Upload Audio</label>
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={(e) => setAudio(e.target.files[0])}
-          />
-        </div>
-
-        <div>
-          <label>Upload Cover</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setCover(e.target.files[0])}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            background: "#1db954",
-            border: "none",
-            padding: "10px",
-            borderRadius: "5px",
-            cursor: "pointer",
-            color: "#000",
-            fontWeight: "bold",
-          }}
-        >
-          {loading ? "Uploading..." : "Upload Song"}
-        </button>
-
-        {message && <p>{message}</p>}
         <button
           onClick={() => {
             localStorage.removeItem("isAdmin");
             window.location.href = "/login";
           }}
+          style={sidebarBtn}
         >
           Logout
         </button>
-      </form>
-      <div style={{ marginTop: "30px" }}>
-        <h3>Uploaded Songs 🎵</h3>
-
-        {songs.map((song) => (
-          <div
-            key={song._id}
-            style={{
-              marginBottom: "10px",
-              background: "#222",
-              padding: "10px",
-            }}
-          >
-            {editingId === song._id ? (
-              <>
-                <input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-                <input
-                  value={editArtist}
-                  onChange={(e) => setEditArtist(e.target.value)}
-                />
-
-                <button onClick={() => saveEdit(song._id)}>Save</button>
-              </>
-            ) : (
-              <>
-                <p>
-                  {song.title} - {song.artist}
-                </p>
-
-                <button onClick={() => startEdit(song)}>Edit</button>
-                <button onClick={() => handleDelete(song._id)}>Delete</button>
-              </>
-            )}
-          </div>
-        ))}
       </div>
-      <input
-        type="text"
-        placeholder="Paste YouTube link or playlist"
-        value={youtubeLink}
-        onChange={(e) => setYoutubeLink(e.target.value)}
-      />
 
-      <button onClick={importFromYoutube}>Import from YouTube</button>
+      {/* Main Content */}
+      <div
+        style={{ flex: 1, padding: "30px", color: "#fff", overflowY: "auto" }}
+      >
+        {/* Upload Section */}
+        <div style={cardStyle}>
+          <h2>Upload Song</h2>
+
+          <form
+            onSubmit={handleUpload}
+            style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+          >
+            <input
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              style={inputStyle}
+            />
+            <input
+              placeholder="Artist"
+              value={artist}
+              onChange={(e) => setArtist(e.target.value)}
+              style={inputStyle}
+            />
+            <input type="file" onChange={(e) => setAudio(e.target.files[0])} />
+            <input type="file" onChange={(e) => setCover(e.target.files[0])} />
+
+            <button type="submit" style={primaryBtn}>
+              {loading ? "Uploading..." : "Upload"}
+            </button>
+          </form>
+
+          {message && <p>{message}</p>}
+        </div>
+        {/* YouTube Import Section */}
+        <div style={cardStyle}>
+          <h2>Import from YouTube 🎥</h2>
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            <input
+              type="text"
+              placeholder="Paste YouTube link or playlist"
+              value={youtubeLink}
+              onChange={(e) => setYoutubeLink(e.target.value)}
+              style={{ ...inputStyle, flex: 1 }}
+            />
+
+            <button onClick={importFromYoutube} style={primaryBtn}>
+              Import
+            </button>
+          </div>
+        </div>
+        {/* Song List */}
+        <div style={cardStyle}>
+          <h2>All Songs</h2>
+
+          {songs.map((song) => (
+            <div key={song._id} style={songRow}>
+              <div>
+                <b>{song.title}</b>
+                <p style={{ margin: 0, fontSize: "12px", color: "#aaa" }}>
+                  {song.artist}
+                </p>
+              </div>
+
+              {editingId === song._id ? (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                  <input
+                    value={editArtist}
+                    onChange={(e) => setEditArtist(e.target.value)}
+                  />
+                  <button onClick={() => saveEdit(song._id)}>💾</button>
+                </>
+              ) : (
+                <div>
+                  <button onClick={() => startEdit(song)}>✏️</button>
+                  <button onClick={() => handleDelete(song._id)}>🗑</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -252,6 +235,41 @@ const inputStyle = {
   borderRadius: "5px",
   border: "none",
   outline: "none",
+};
+const cardStyle = {
+  background: "#181818",
+  padding: "20px",
+  borderRadius: "10px",
+  marginBottom: "20px",
+};
+
+const songRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  background: "#222",
+  padding: "10px",
+  borderRadius: "6px",
+  marginBottom: "10px",
+};
+
+const primaryBtn = {
+  background: "#1db954",
+  border: "none",
+  padding: "10px",
+  borderRadius: "5px",
+  cursor: "pointer",
+  fontWeight: "bold",
+};
+
+const sidebarBtn = {
+  marginTop: "20px",
+  padding: "10px",
+  width: "100%",
+  background: "#1db954",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
 };
 
 export default Admin;

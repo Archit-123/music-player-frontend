@@ -5,7 +5,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
   const currentSong = songs[currentIndex] || {};
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  // const [hasInteracted, setHasInteracted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -21,7 +21,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
   };
 
   const togglePlay = () => {
-    setHasInteracted(true);
+    // setHasInteracted(true);
 
     if (isPlaying) {
       audioRef.current.pause();
@@ -29,7 +29,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
       audioRef.current.play();
     }
 
-    setIsPlaying(!isPlaying);
+    setIsPlaying((prev) => !prev);
   };
 
   // Next Song
@@ -57,13 +57,24 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
   };
 
   useEffect(() => {
-    if (audioRef.current && hasInteracted) {
+    if (audioRef.current) {
       audioRef.current.load();
-      audioRef.current.play();
-      setIsPlaying(true);
+
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(() => {
+            // autoplay blocked — do nothing
+          });
+      }
+
       setCurrentTime(0);
     }
-  }, [currentIndex, hasInteracted]);
+  }, [currentIndex]);
 
   // Volume
 
@@ -85,58 +96,165 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
     audioRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
   };
-
   return (
     <div
       style={{
         position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: "#181818",
+        bottom: 10,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "95%",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(20,20,20,0.65)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "18px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
         color: "#fff",
         display: "flex",
         alignItems: "center",
-        padding: "10px",
         justifyContent: "space-between",
+        padding: "14px 22px",
+        gap: "20px",
       }}
     >
-      {/* Song Info */}
-      <div style={{ display: "flex", alignItems: "center" }}>
+      {/* LEFT - SONG */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          width: "25%",
+        }}
+      >
         <img
           src={currentSong.coverUrl || "https://placehold.co/50"}
           alt=""
-          style={{ width: "50px", height: "50px", marginRight: "10px" }}
-        />
-        <div>{currentSong.title}</div>
-      </div>
-
-      {/* Progress */}
-      <div style={{ width: "30%" }}>
-        {/* Controls */}
-        <div>
-          <button onClick={prevSong}>⏮</button>
-          <button onClick={() => setIsShuffle(!isShuffle)}>
-            {isShuffle ? "🔀 ON" : "🔀"}
-          </button>
-          <button onClick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
-          <button onClick={nextSong}>⏭</button>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max={duration}
-          value={currentTime}
-          onChange={handleSeek}
-          style={{ width: "100%" }}
+          style={{
+            width: "55px",
+            height: "55px",
+            borderRadius: "12px",
+            objectFit: "cover",
+            boxShadow: isPlaying ? "0 0 20px rgba(255,255,255,0.25)" : "none",
+            transition: "all 0.4s ease",
+          }}
         />
         <div>
-          {formatTime(currentTime)} / {formatTime(duration)}
+          <div style={{ fontWeight: 600 }}>{currentSong.title}</div>
+          <div style={{ fontSize: "12px", color: "#aaa" }}>
+            {currentSong.artist}
+          </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <button onClick={toggleMute}>{isMuted ? "🔇" : "🔊"}</button>
+      {/* CENTER */}
+      <div style={{ width: "50%", textAlign: "center" }}>
+        {/* CONTROLS */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "12px",
+            marginBottom: "6px",
+          }}
+        >
+          {[
+            { label: "⏮", fn: prevSong },
+            {
+              label: isShuffle ? "🔀" : "🔀",
+              fn: () => setIsShuffle(!isShuffle),
+              active: isShuffle,
+            },
+            { label: isPlaying ? "⏸" : "▶", fn: togglePlay, main: true },
+            { label: "⏭", fn: nextSong },
+          ].map((btn, i) => (
+            <button
+              key={i}
+              onClick={btn.fn}
+              style={{
+                padding: btn.main ? "10px 14px" : "6px 10px",
+                fontSize: btn.main ? "18px" : "14px",
+                borderRadius: btn.main ? "50%" : "10px",
+                border: btn.main ? "none" : "1px solid rgba(255,255,255,0.1)",
+                background: btn.main
+                  ? "linear-gradient(135deg,#1db954,#1ed760)"
+                  : btn.active
+                    ? "rgba(29,185,84,0.25)"
+                    : "rgba(255,255,255,0.05)",
+                color: btn.main ? "#000" : "#fff",
+                cursor: "pointer",
+                transition: "all 0.25s ease",
+                boxShadow: btn.main ? "0 0 20px rgba(29,185,84,0.5)" : "none",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "scale(1.1)";
+                e.target.style.background = btn.main
+                  ? "linear-gradient(135deg,#1ed760,#1db954)"
+                  : "rgba(255,255,255,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "scale(1)";
+                e.target.style.background = btn.main
+                  ? "linear-gradient(135deg,#1db954,#1ed760)"
+                  : btn.active
+                    ? "rgba(29,185,84,0.25)"
+                    : "rgba(255,255,255,0.05)";
+              }}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+
+        {/* PROGRESS */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", color: "#aaa" }}>
+            {formatTime(currentTime)}
+          </span>
+
+          <input
+            type="range"
+            min="0"
+            max={duration}
+            value={currentTime}
+            onChange={handleSeek}
+            style={{
+              flex: 1,
+              accentColor: "#1db954",
+              cursor: "pointer",
+            }}
+          />
+
+          <span style={{ fontSize: "11px", color: "#aaa" }}>
+            {formatTime(duration)}
+          </span>
+        </div>
+      </div>
+
+      {/* RIGHT */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          width: "25%",
+          justifyContent: "flex-end",
+        }}
+      >
+        <button
+          onClick={toggleMute}
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "10px",
+            padding: "6px 10px",
+            color: "#fff",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+        >
+          {isMuted ? "🔇" : "🔊"}
+        </button>
 
         <input
           type="range"
@@ -145,6 +263,10 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
           step="0.01"
           value={volume}
           onChange={handleVolumeChange}
+          style={{
+            width: "110px",
+            accentColor: "#1db954",
+          }}
         />
       </div>
 
@@ -153,7 +275,19 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
         src={currentSong.audioUrl}
         onTimeUpdate={() => setCurrentTime(audioRef.current.currentTime)}
         onLoadedMetadata={() => setDuration(audioRef.current.duration)}
-        onEnded={nextSong}
+        onEnded={() => {
+          setCurrentIndex((prev) => {
+            if (isShuffle) {
+              let newIndex;
+              do {
+                newIndex = Math.floor(Math.random() * songs.length);
+              } while (newIndex === prev);
+              return newIndex;
+            } else {
+              return (prev + 1) % songs.length;
+            }
+          });
+        }}
       />
     </div>
   );

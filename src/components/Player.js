@@ -367,7 +367,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
             bottom: 10,
             left: "50%",
             transform: "translateX(-50%)",
-            width: "95%",
+            width: "90%",
             background: "rgba(20,20,20,0.65)",
             backdropFilter: "blur(20px)",
             borderRadius: "18px",

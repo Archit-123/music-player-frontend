@@ -11,6 +11,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
 
   const [volume, setVolume] = useState(1); // 0 to 1
   const [isMuted, setIsMuted] = useState(false);
+
   const [isShuffle, setIsShuffle] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -106,143 +107,6 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
     setIsMuted(!isMuted);
   };
 
-  // return (
-  //   <>
-  //     {/* MINI PLAYER */}
-  //     {!isExpanded && (
-  //       <div
-  //         onClick={() => setIsExpanded(true)}
-  //         style={{
-  //           position: "fixed",
-  //           bottom: 10,
-  //           left: "50%",
-  //           transform: "translateX(-50%)",
-  //           width: "95%",
-  //           background: "rgba(20,20,20,0.9)",
-  //           borderRadius: "12px",
-  //           padding: "10px",
-  //           display: "flex",
-  //           alignItems: "center",
-  //           gap: "10px",
-  //           cursor: "pointer",
-  //         }}
-  //       >
-  //         <img
-  //           src={currentSong.coverUrl}
-  //           style={{ width: "45px", height: "45px", borderRadius: "8px" }}
-  //         />
-
-  //         <div style={{ flex: 1 }}>
-  //           <div style={{ fontSize: "14px" }}>{currentSong.title}</div>
-  //           <div style={{ fontSize: "11px", color: "#aaa" }}>
-  //             {currentSong.artist}
-  //           </div>
-  //         </div>
-
-  //         <button
-  //           onClick={(e) => {
-  //             e.stopPropagation();
-  //             togglePlay();
-  //           }}
-  //         >
-  //           {isPlaying ? "⏸" : "▶"}
-  //         </button>
-  //       </div>
-  //     )}
-
-  //     {/* FULL PLAYER */}
-  //     {isExpanded && (
-  //       <div
-  //         style={{
-  //           position: "fixed",
-  //           top: 0,
-  //           left: 0,
-  //           width: "100%",
-  //           height: "100%",
-  //           background: "linear-gradient(to bottom, #3a1f1f, #000)",
-  //           color: "#fff",
-  //           display: "flex",
-  //           flexDirection: "column",
-  //           alignItems: "center",
-  //           justifyContent: "center",
-  //           padding: "20px",
-  //           zIndex: 999,
-  //         }}
-  //       >
-  //         {/* CLOSE BUTTON */}
-  //         <div
-  //           style={{
-  //             position: "absolute",
-  //             top: 20,
-  //             left: 20,
-  //             cursor: "pointer",
-  //             fontSize: "20px",
-  //           }}
-  //           onClick={() => setIsExpanded(false)}
-  //         >
-  //           ⬇
-  //         </div>
-
-  //         {/* ALBUM */}
-  //         <img
-  //           src={currentSong.coverUrl}
-  //           style={{
-  //             width: "80%",
-  //             maxWidth: "300px",
-  //             borderRadius: "12px",
-  //             marginBottom: "20px",
-  //           }}
-  //         />
-
-  //         {/* TITLE */}
-  //         <h2>{currentSong.title}</h2>
-  //         <p style={{ color: "#aaa" }}>{currentSong.artist}</p>
-
-  //         {/* PROGRESS */}
-  //         <input
-  //           type="range"
-  //           min="0"
-  //           max={duration}
-  //           value={currentTime}
-  //           onChange={handleSeek}
-  //           style={{ width: "90%", margin: "20px 0" }}
-  //         />
-
-  //         {/* CONTROLS */}
-  //         <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
-  //           <button onClick={prevSong}>⏮</button>
-  //           <button onClick={() => setIsShuffle(!isShuffle)}>🔀</button>
-
-  //           <button
-  //             onClick={togglePlay}
-  //             style={{
-  //               fontSize: "22px",
-  //               padding: "12px 18px",
-  //               borderRadius: "50%",
-  //               background: "#1db954",
-  //               border: "none",
-  //             }}
-  //           >
-  //             {isPlaying ? "⏸" : "▶"}
-  //           </button>
-
-  //           <button onClick={nextSong}>⏭</button>
-  //         </div>
-  //       </div>
-  //     )}
-
-  //     {/* AUDIO */}
-  //     <audio
-  //       ref={audioRef}
-  //       src={currentSong.audioUrl}
-  //       onTimeUpdate={() => setCurrentTime(audioRef.current.currentTime)}
-  //       onLoadedMetadata={() => setDuration(audioRef.current.duration)}
-  //       onEnded={() => {
-  //         setCurrentIndex((prev) => (prev + 1) % songs.length);
-  //       }}
-  //     />
-  //   </>
-  // );
   return (
     <>
       {/* MOBILE PLAYER ONLY */}
@@ -277,6 +141,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
                   borderRadius: "10px",
                   objectFit: "cover",
                 }}
+                alt="/"
               />
 
               <div style={{ flex: 1 }}>
@@ -373,6 +238,7 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
                     borderRadius: "14px",
                     boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
                   }}
+                  alt="/"
                 />
 
                 {/* TITLE */}
@@ -513,10 +379,19 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
             color: "#fff",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* LEFT - SONG */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              width: "25%",
+            }}
+          >
             <img
               src={currentSong.coverUrl}
               style={{ width: "50px", height: "50px", borderRadius: "10px" }}
+              alt="/"
             />
             <div>
               <div>{currentSong.title}</div>
@@ -526,20 +401,165 @@ const Player = ({ songs, currentIndex, setCurrentIndex }) => {
             </div>
           </div>
 
-          <button
-            onClick={togglePlay}
+          {/* CENTER - CONTROLS + PROGRESS */}
+          <div style={{ width: "50%", textAlign: "center" }}>
+            {/* CONTROLS */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "12px",
+                marginBottom: "6px",
+                alignItems: "center",
+              }}
+            >
+              <button
+                onClick={prevSong}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "10px",
+                  padding: "6px 10px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.15)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.05)")
+                }
+              >
+                ⏮
+              </button>
+
+              <button
+                onClick={() => setIsShuffle(!isShuffle)}
+                style={{
+                  background: isShuffle
+                    ? "rgba(29,185,84,0.3)"
+                    : "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "10px",
+                  padding: "6px 10px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
+              >
+                🔀
+              </button>
+
+              <button
+                onClick={togglePlay}
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  borderRadius: "50%",
+                  background: "#1db954",
+                  border: "none",
+                  color: "#000",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  boxShadow: "0 0 12px rgba(29,185,84,0.6)",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
+                onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+              >
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+
+              <button
+                onClick={nextSong}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "10px",
+                  padding: "6px 10px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.15)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "rgba(255,255,255,0.05)")
+                }
+              >
+                ⏭
+              </button>
+            </div>
+
+            {/* PROGRESS */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px" }}>
+                {formatTime(currentTime)}
+              </span>
+
+              <input
+                type="range"
+                min="0"
+                max={duration}
+                value={currentTime}
+                onChange={handleSeek}
+                style={{
+                  flex: 1,
+                  accentColor: "#1db954",
+                }}
+              />
+
+              <span style={{ fontSize: "11px" }}>{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* RIGHT - VOLUME */}
+          <div
             style={{
-              background: "#1db954",
-              border: "none",
-              borderRadius: "50%",
-              width: "45px",
-              height: "45px",
-              color: "#000",
-              fontSize: "18px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              width: "25%",
+              justifyContent: "flex-end",
             }}
           >
-            {isPlaying ? "⏸" : "▶"}
-          </button>
+            <button
+              onClick={toggleMute}
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "10px",
+                padding: "6px 10px",
+                color: "#fff",
+                cursor: "pointer",
+                transition: "0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.background = "rgba(255,255,255,0.15)")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.background = "rgba(255,255,255,0.05)")
+              }
+            >
+              {isMuted ? "🔇" : "🔊"}
+            </button>
+
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={handleVolumeChange}
+              style={{
+                width: "100px",
+                accentColor: "#1db954",
+                cursor: "pointer",
+              }}
+            />
+          </div>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Player from "../components/Player";
 
 const Home = () => {
@@ -14,7 +14,7 @@ const Home = () => {
 
   const fetchingRef = useRef(false);
 
-  const fetchSongs = async () => {
+  const fetchSongs = useCallback(async () => {
     if (loading || !hasMore) return;
 
     setLoading(true);
@@ -25,23 +25,15 @@ const Home = () => {
       );
 
       const data = await res.json();
-      console.log("Fetching page:", page);
-      console.log("Received:", data.length);
 
       if (data.length === 0) {
         setHasMore(false);
       } else {
         setSongs((prev) => {
-          const newSongs = [...prev, ...data];
-
-          const uniqueSongs = newSongs.filter(
-            (song, index, self) =>
-              index === self.findIndex((s) => s._id === song._id),
-          );
-
-          return uniqueSongs;
+          const map = new Map();
+          [...prev, ...data].forEach((song) => map.set(song._id, song));
+          return Array.from(map.values());
         });
-        setHasMore(true);
       }
     } catch (err) {
       console.error(err);
@@ -49,11 +41,10 @@ const Home = () => {
       setLoading(false);
       fetchingRef.current = false;
     }
-  };
+  }, [page, loading, hasMore]);
   useEffect(() => {
     fetchSongs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [fetchSongs]);
 
   // Scroll Effect
   useEffect(() => {

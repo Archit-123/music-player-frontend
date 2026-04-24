@@ -11,6 +11,7 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
 
   const [loading, setLoading] = useState(false);
+  const loaderRef = useRef(null);
 
   const fetchingRef = useRef(false);
 
@@ -47,32 +48,62 @@ const Home = () => {
   }, [fetchSongs]);
 
   // Scroll Effect
+  // useEffect(() => {
+  //   const container = scrollRef.current;
+
+  //   if (!container) return;
+
+  //   const handleScroll = () => {
+  //     const scrollTop = container.scrollTop;
+  //     const scrollHeight = container.scrollHeight;
+  //     const clientHeight = container.clientHeight;
+
+  //     if (
+  //       scrollTop + clientHeight >= scrollHeight - 100 &&
+  //       !loading &&
+  //       hasMore &&
+  //       !fetchingRef.current
+  //     ) {
+  //       // setHasMore(false);
+  //       fetchingRef.current = true;
+  //       setPage((prev) => prev + 1);
+  //     }
+  //   };
+
+  //   container.addEventListener("scroll", handleScroll);
+
+  //   return () => container.removeEventListener("scroll", handleScroll);
+  // }, [loading, hasMore]);
   useEffect(() => {
-    const container = scrollRef.current;
+    if (!loaderRef.current) return;
 
-    if (!container) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
 
-    const handleScroll = () => {
-      const scrollTop = container.scrollTop;
-      const scrollHeight = container.scrollHeight;
-      const clientHeight = container.clientHeight;
+        if (
+          first.isIntersecting &&
+          hasMore &&
+          !loading &&
+          !fetchingRef.current
+        ) {
+          fetchingRef.current = true;
+          setPage((prev) => prev + 1);
+        }
+      },
+      {
+        root: scrollRef.current || null,
+        rootMargin: "400px",
+        threshold: 0,
+      },
+    );
 
-      if (
-        scrollTop + clientHeight >= scrollHeight - 100 &&
-        !loading &&
-        hasMore &&
-        !fetchingRef.current
-      ) {
-        // setHasMore(false);
-        fetchingRef.current = true;
-        setPage((prev) => prev + 1);
-      }
+    observer.observe(loaderRef.current);
+
+    return () => {
+      observer.disconnect(); // 🔥 cleaner than unobserve
     };
-
-    container.addEventListener("scroll", handleScroll);
-
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [loading, hasMore]);
+  }, [hasMore, loading]);
 
   // Detect screen resize
   useEffect(() => {
@@ -144,6 +175,7 @@ const Home = () => {
               </div>
             </div>
           ))}
+          {/* <div ref={loaderRef} style={{ height: "40px" }} /> */}
         </div>
       )}
 
@@ -198,6 +230,7 @@ const Home = () => {
                 </div>
               </div>
             ))}
+            {/* <div ref={loaderRef} style={{ height: "40px" }} /> */}
           </div>
         ) : (
           /* DESKTOP GRID */
@@ -240,6 +273,7 @@ const Home = () => {
             ))}
           </div>
         )}
+        <div ref={loaderRef} style={{ height: "20px" }} />
       </div>
 
       {/* PLAYER */}

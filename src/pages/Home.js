@@ -22,7 +22,7 @@ const Home = () => {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/songs?page=${page}&limit=20`,
+        `${process.env.REACT_APP_API_URL}/songs?page=${page}&limit=50`,
       );
 
       const data = await res.json();
@@ -101,7 +101,7 @@ const Home = () => {
     observer.observe(loaderRef.current);
 
     return () => {
-      observer.disconnect(); // 🔥 cleaner than unobserve
+      observer.disconnect();
     };
   }, [hasMore, loading]);
 

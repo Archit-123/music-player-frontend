@@ -1,16 +1,86 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Player from "../components/Player";
 
 const Home = () => {
+  const scrollRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [songs, setSongs] = useState([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const [loading, setLoading] = useState(false);
+
+  const fetchingRef = useRef(false);
+
+  const fetchSongs = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL}/songs?page=${page}&limit=20`,
+      );
+
+      const data = await res.json();
+      console.log("Fetching page:", page);
+      console.log("Received:", data.length);
+
+      if (data.length === 0) {
+        setHasMore(false);
+      } else {
+        setSongs((prev) => {
+          const newSongs = [...prev, ...data];
+
+          const uniqueSongs = newSongs.filter(
+            (song, index, self) =>
+              index === self.findIndex((s) => s._id === song._id),
+          );
+
+          return uniqueSongs;
+        });
+        setHasMore(true);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      fetchingRef.current = false;
+    }
+  };
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/songs`)
-      .then((res) => res.json())
-      .then((data) => setSongs(data));
-  }, []);
+    fetchSongs();
+  }, [page]);
+
+  // Scroll Effect
+  useEffect(() => {
+    const container = scrollRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+
+      if (
+        scrollTop + clientHeight >= scrollHeight - 100 &&
+        !loading &&
+        hasMore &&
+        !fetchingRef.current
+      ) {
+        // setHasMore(false);
+        fetchingRef.current = true;
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [loading, hasMore]);
 
   // Detect screen resize
   useEffect(() => {
@@ -87,6 +157,7 @@ const Home = () => {
 
       {/* MAIN CONTENT */}
       <div
+        ref={scrollRef}
         style={{
           flex: 1,
           padding: isMobile ? "15px" : "25px",

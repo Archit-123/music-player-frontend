@@ -9,9 +9,12 @@ const Admin = () => {
   const [message, setMessage] = useState("");
 
   const [songs, setSongs] = useState([]);
+  const [songscount, setSongscount] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editArtist, setEditArtist] = useState("");
+
+  // const [hasMore, setHasMore] = useState(true);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -38,24 +41,74 @@ const Admin = () => {
       const data = await res.json();
       console.log(data);
 
-      setMessage("Upload successful 🎉");
+      setMessage("Upload successful ");
       setTitle("");
       setArtist("");
       setAudio(null);
       setCover(null);
     } catch (err) {
-      setMessage("Upload failed ❌");
+      setMessage("Upload failed ");
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch Songs count
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/songscount`)
+      .then((res) => res.json())
+      .then((data) => setSongscount(data));
+  }, []);
+  // console.log("Songs fetched in this API: ", songscount);
+
   // Fetch Songs
+
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_URL}/songs`)
       .then((res) => res.json())
       .then((data) => setSongs(data));
   }, []);
+  // const [page, setPage] = useState(0);
+  // const fetchingRef = useRef(false);
+  // const fetchSongs = async () => {
+  //   if (loading || !hasMore) return;
+
+  //   setLoading(true);
+
+  //   try {
+  //     const res = await fetch(
+  //       `${process.env.REACT_APP_API_URL}/songs?page=${page}&limit=20`,
+  //     );
+
+  //     const data = await res.json();
+  //     console.log("Fetching page:", page);
+  //     console.log("Received:", data.length);
+
+  //     if (data.length === 0) {
+  //       setHasMore(false);
+  //     } else {
+  //       setSongs((prev) => {
+  //         const newSongs = [...prev, ...data];
+
+  //         const uniqueSongs = newSongs.filter(
+  //           (song, index, self) =>
+  //             index === self.findIndex((s) => s._id === song._id),
+  //         );
+
+  //         return uniqueSongs;
+  //       });
+  //       setHasMore(true);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setLoading(false);
+  //     fetchingRef.current = false;
+  //   }
+  // };
+  // useEffect(() => {
+  //   fetchSongs();
+  // }, [page]);
 
   const startEdit = (song) => {
     setEditingId(song._id);
@@ -81,17 +134,46 @@ const Admin = () => {
 
   const [youtubeLink, setYoutubeLink] = useState("");
   const importFromYoutube = async () => {
-    alert("Import started...");
+    if (!youtubeLink) {
+      alert("Please enter a YouTube link");
+      return;
+    }
 
-    await fetch(`${process.env.REACT_APP_API_URL}/youtube-import`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ url: youtubeLink }),
-    });
+    try {
+      setLoading(true);
 
-    alert("Done! Refresh songs 🎵");
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL}/youtube-import`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: youtubeLink }),
+        },
+      );
+
+      const data = await res.json();
+
+      console.log("IMPORT RESPONSE:", data);
+
+      if (!res.ok) {
+        alert(" Import failed: " + data.error);
+        return;
+      }
+
+      alert(" Import started successfully!");
+
+      // refresh songs after some delay (important)
+      setTimeout(() => {
+        window.location.reload();
+      }, 4000);
+    } catch (err) {
+      console.error(err);
+      alert(" Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // song count
@@ -126,7 +208,7 @@ const Admin = () => {
         }}
       >
         <h2>Admin 🎧</h2>
-        <p>Total Songs: {songs.length}</p>
+        <p>Total Songs: {songscount.length}</p>
 
         <button
           onClick={() => {

@@ -3,6 +3,8 @@ import Player from "../components/Player";
 
 const Home = () => {
   const [viewMode, setViewMode] = useState("featured");
+  // Ham menu
+  const [showMenu, setShowMenu] = useState(false);
 
   // for PlayList
   const [showRenameModal, setShowRenameModal] = useState(false);
@@ -310,14 +312,133 @@ const Home = () => {
       {isMobile && (
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             padding: "15px",
             fontSize: "20px",
             fontWeight: "bold",
             borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          🎵 My Music
+          <button
+            onClick={() => setShowMenu(true)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#fff",
+              fontSize: "22px",
+              cursor: "pointer",
+            }}
+          >
+            ☰
+          </button>
+          <div>🎵 My Music</div>
+          <div style={{ width: "22px" }} /> {/* spacer */}
         </div>
+      )}
+      {isMobile && (
+        <>
+          {/* OVERLAY */}
+          <div
+            onClick={() => setShowMenu(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0,0,0,0.6)",
+              zIndex: 999,
+              opacity: showMenu ? 1 : 0,
+              pointerEvents: showMenu ? "auto" : "none",
+              transition: "opacity 0.3s ease",
+            }}
+          />
+
+          {/* DRAWER */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "260px",
+              height: "100%",
+              background: "#111",
+              padding: "15px",
+              zIndex: 1000,
+              overflowY: "auto",
+              transform: showMenu ? "translateX(0)" : "translateX(-100%)",
+              transition: "transform 0.3s ease",
+              // boxShadow: "5px 0 20px rgba(0,0,0,0.5)",
+            }}
+          >
+            <h2 style={{ marginBottom: "15px", color: "#1db954" }}>Library</h2>
+
+            {/* CREATE PLAYLIST */}
+            <div
+              onClick={() => {
+                setShowModal(true);
+                setShowMenu(false);
+              }}
+              style={{
+                padding: "10px",
+                marginBottom: "12px",
+                borderRadius: "10px",
+                background: "rgba(255,255,255,0.08)",
+                textAlign: "center",
+                fontWeight: "bold",
+              }}
+            >
+              ➕ Create Playlist
+            </div>
+
+            {/* FEATURED */}
+            <div
+              onClick={() => {
+                setViewMode("featured");
+                setShowMenu(false);
+              }}
+              style={{
+                padding: "10px",
+                marginBottom: "8px",
+                borderRadius: "10px",
+                background:
+                  viewMode === "featured"
+                    ? "rgba(29,185,84,0.25)"
+                    : "rgba(255,255,255,0.05)",
+              }}
+            >
+              Featured Songs
+            </div>
+
+            {/* PLAYLISTS */}
+            {playLists.map((pl) => (
+              <div
+                key={pl._id}
+                onClick={() => {
+                  setSelectedPlaylist(pl);
+                  setViewMode("playlist");
+                  setShowMenu(false);
+                }}
+                style={{
+                  padding: "10px",
+                  marginBottom: "8px",
+                  borderRadius: "10px",
+                  background:
+                    viewMode === "playlist" && selectedPlaylist?._id === pl._id
+                      ? "rgba(29,185,84,0.25)"
+                      : "rgba(255,255,255,0.05)",
+                }}
+              >
+                <div>{pl.name}</div>
+                <div style={{ fontSize: "12px", color: "#aaa" }}>
+                  {pl.songs?.length || 0} songs
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* SIDEBAR (DESKTOP ONLY) */}
@@ -493,46 +614,152 @@ const Home = () => {
           (viewMode === "featured" ? songs : filteredSongs).map(
             (song, index) => {
               const isPlaylist = viewMode === "playlist";
+              const isActive = activeQueue[currentIndex]?._id === song._id;
 
               return (
                 <div
                   key={song._id || song.id}
-                  onClick={() => !isPlaylist && setCurrentIndex(index)}
+                  onClick={() => {
+                    if (isPlaylist) {
+                      setActiveQueue(filteredSongs);
+                    } else {
+                      setActiveQueue(songs);
+                    }
+                    setCurrentIndex(index);
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "10px",
-                    padding: "10px",
+                    justifyContent: "space-between",
+                    padding: "12px",
                     borderRadius: "10px",
                     marginBottom: "10px",
-                    background:
-                      !isPlaylist && index === currentIndex
-                        ? "rgba(29,185,84,0.25)"
-                        : "rgba(255,255,255,0.05)",
+                    background: isActive
+                      ? "rgba(29,185,84,0.25)"
+                      : "rgba(255,255,255,0.05)",
+                    transition: "all 0.2s ease",
                   }}
                 >
-                  <img
-                    src={
-                      isPlaylist
-                        ? "https://placehold.co/50"
-                        : song.coverUrl || "https://placehold.co/50"
-                    }
+                  {/* LEFT SIDE */}
+                  <div
                     style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "8px",
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
                     }}
-                    alt=""
-                  />
+                  >
+                    <img
+                      src={song.coverUrl || "https://placehold.co/50"}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "8px",
+                        objectFit: "cover",
+                      }}
+                      alt=""
+                    />
 
-                  <div>
-                    <div style={{ fontWeight: 500 }}>
-                      {isPlaylist ? song.song : song.title}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#aaa" }}>
-                      {song.artist}
+                    <div>
+                      <div style={{ fontWeight: 500 }}>
+                        {song.title || song.song}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#aaa" }}>
+                        {song.artist}
+                      </div>
                     </div>
                   </div>
+
+                  {/* RIGHT SIDE */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* PLAYLIST DELETE */}
+                    {isPlaylist && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSongToRemove(song);
+                          setShowRemoveSongModal(true);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#ff4d4d",
+                          fontSize: "16px",
+                        }}
+                      >
+                        🗑
+                      </button>
+                    )}
+
+                    {/* ADD TO PLAYLIST */}
+                    {!isPlaylist && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSongDropdownId(
+                            song._id === songDropdownId ? null : song._id,
+                          );
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#fff",
+                          fontSize: "18px",
+                        }}
+                      >
+                        ⋮
+                      </button>
+                    )}
+                  </div>
+
+                  {/* DROPDOWN (ADD TO PLAYLIST) */}
+                  {songDropdownId === song._id && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "60px",
+                        background: "#222",
+                        borderRadius: "8px",
+                        padding: "5px",
+                        zIndex: 20,
+                        width: "160px",
+                      }}
+                    >
+                      {playLists.map((pl) => {
+                        const alreadyAdded = pl.songs?.some(
+                          (s) => s._id === song._id,
+                        );
+
+                        return (
+                          <div
+                            key={pl._id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+
+                              if (alreadyAdded) {
+                                handleRemoveFromPlaylist(song._id, pl._id);
+                              } else {
+                                handleAddToPlaylist(song._id, pl._id);
+                              }
+                            }}
+                            style={{
+                              padding: "8px",
+                              fontSize: "14px",
+                              opacity: alreadyAdded ? 0.6 : 1,
+                            }}
+                          >
+                            {alreadyAdded ? "✔ Added" : "➕ Add to"} {pl.name}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             },
